@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+
+require 'YAML'
+require 'pathname'
+require 'pry'
+require_relative 'lib/github_action'
+require_relative 'lib/job'
+
+class Converter
+  USAGE = <<~USAGE_MESSAGE
+  Usage: convert-travis-to-gh-actions <project_path>
+
+  Will automatically template out gh actions for each of your travis tasks.
+  These actions will likely require manual intervention.
+  USAGE_MESSAGE
+  TRAVIS_FILE =  '.travis.yml'
+  GH_ACTIONS_DIR = '.github/workflows'
+  SUGGESTED_ACTIONS = %w[ruby_test javascript_test lint build python_test]
+
+  def initialize(*args)
+    path, *rest = args
+    @project_path = Pathname.new(path) if path
+    @invalid_args = rest
+  end
+
+  def run
+    validate
+    gh_actions_dir.mkpath
+    binding.pry
+  end
+
+  private
+
+  def jobs
+    (travis_object.dig('jobs','include')||[]).map do |job|
+      Job.new(travis_object, job)
+    end
+  end
+
+  def gh_actions_dir
+    @project_path.join(GH_ACTIONS_DIR)
+  end
+
+  def travis_file
+    @project_path.join(TRAVIS_FILE)
+  end
+
+  def travis_object
+    YAML.load_file(travis_file)
+  end
+
+  # Some basic validation to make sure we don't fail immediately
+  def validate
+    fail_with("No directory specified", 1) if @project_path.nil?
+    fail_with("Unrecognized arguments: #{@invalid_args}", 2) if @invalid_args.length > 0
+    fail_with("#{@project_path} does not exist", 3) unless @project_path.exist?
+    fail_with("#{@project_path} does not contain a #{TRAVIS_FILE} file", 4) unless travis_file.exist?
+  end
+
+  def fail_with(message, exit_code)
+    warn(message)
+    puts USAGE
+    exit exit_code
+  end
+end
+
+Converter.new(*ARGV).run
