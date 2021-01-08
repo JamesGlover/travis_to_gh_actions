@@ -1,8 +1,16 @@
 # Migrating Travis to GH Actions
 
-I was hoping to do this with an automated tool, but things get a bit complicated,
-and its probably easier doing manually, at least the first time.
+## Examples
 
+Sequencescape
+https://github.com/sanger/sequencescape/tree/develop/.github/workflows
+PR: https://github.com/sanger/sequencescape/pull/2978
+
+Record Loader (Been using GH actions for a while)
+https://github.com/sanger/record_loader/tree/master/.github/workflows
+
+Warren (Very simple, but example of version testing matrix)
+PR: https://github.com/sanger/warren/pull/1
 ## Basics
 
 GH actions are defined in yml files which live in `.github/workflows`
