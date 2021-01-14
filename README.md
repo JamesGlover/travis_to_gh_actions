@@ -316,22 +316,16 @@ Essentially rather than using the internal .resultset.json the new version will 
     runs-on: ubuntu-latest
     needs: [rake_tests, rspec_tests, cucumber_tests]
     steps:
+    - uses: actions/checkout@v2
     - name: Fetch coverage results
       uses: actions/download-artifact@v2
       with:
         path: tmp/
     - name: Publish code coverage
       uses: paambaati/codeclimate-action@v2.7.5
-      env:
-        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       with:
         coverageLocations: |
-          tmp/codeclimate-rake_tests-
-          tmp/codeclimate-rspec_tests-0
-          tmp/codeclimate-rspec_tests-1
-          tmp/codeclimate-rspec_tests-2
-          tmp/codeclimate-cucumber_tests-0
-          tmp/codeclimate-cucumber_tests-1
+          ${{github.workspace}}/tmp/codeclimate-*/coverage.json:simplecov
 ```
 
 This downloads all the files uploaded in the previous steps, and then formats, sums and uploads them.
