@@ -113,23 +113,32 @@ same versions used in dev and CI. Otherwise its just a pain keeping the two in s
 Ran into issues with Oracle gems, when it came to Sequencescape, plus for linting I only really needed
 the rubocop gems.
 
-This is probably not worth worrying about for applications with only a handful of dependencies,
-as it increases the complexity of the process quite significantly. You'll need to remove the
-`bundler-cache` option from the `ruby/setup-ruby@v1` step and then handle caching and bundle install
-yourself.
+Add the env:
+`BUNDLE_WITHOUT: 'groups to exclude'`
 
-Note: If a number of your jobs share the same bundler setup, consider replacing ${{ github.job }}
+To your particular job (or the whole file iff applicable).
+
+Note: Earlier versions of this document suggested rolling your own caching. Since then ruby-setup
+documented tha above, and promises to provide a more robust caching system. We ran into some
+issues on the master branch on the transition to ubuntu 20.04 from 18.04, where the 20.04 builds
+were trying to use gems built against 18.04.
+### Caching
+
+I advise against caching your bundler directory, and instead use the inbuilt caching in ruby-setup.
+However you may wish to cache other directories.
+
+Note: If a number of your jobs share the same setup, consider replacing ${{ github.job }}
 with a shared string. eg. ${{ runner.os }}-tests-${{ hashFiles('**/Gemfile.lock') }}
-
-In Sequencescape world we also cache the rubocop cache to make linting that bit faster. See example/lint.yml
 
 ```yaml
     - name: Cache gems and cops
       uses: actions/cache@v2
       with:
         path: |
-          vendor/bundle
-        key: ${{ runner.os }}-${{ github.job }}-${{ hashFiles('**/Gemfile.lock') }}
+          public/assets
+          tmp/cache/assets/sprockets
+          node_modules
+        key: ${{ runner.os }}-${{ github.job }}-${{ hashFiles('**/yarn.lock') }}
         # If we don't find the specific cache we want, fallback to the last rubocop
         # cache, then finally any cache for this repo.
         # Github looks for the newest cache beginning with the first entry, before
